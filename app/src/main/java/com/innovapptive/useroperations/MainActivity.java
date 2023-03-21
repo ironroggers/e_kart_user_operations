@@ -10,13 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,13 +21,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
-public class MainActivity extends AppCompatActivity {
-    GridView categoryGridView;
+public class MainActivity extends AppCompatActivity{
+    RecyclerView categoryGridView;
     CategoryAdapter categoryAdapter;
+    CatAdapter catAdapter;
     ProductAdapter productAdapter;
     ArrayList<Category> categoryArrayList;
+    RecyclerView.LayoutManager RecyclerViewLayoutManager;
+    LinearLayoutManager HorizontalLayout;
     ArrayList<Product> productArrayList;
     RecyclerView productRecyclerView;
     FirebaseDatabase firebaseDatabase;
@@ -45,8 +43,14 @@ public class MainActivity extends AppCompatActivity {
         categoryArrayList = new ArrayList<>();
         productArrayList = new ArrayList<>();
 
-        categoryAdapter = new CategoryAdapter(this,categoryArrayList);
-        categoryGridView.setAdapter(categoryAdapter);
+//        categoryAdapter = new CategoryAdapter(this,categoryArrayList);
+//        categoryGridView.setAdapter(categoryAdapter);
+        RecyclerViewLayoutManager = new LinearLayoutManager(this);
+        categoryGridView.setLayoutManager(RecyclerViewLayoutManager);
+        catAdapter = new CatAdapter(this,categoryArrayList);
+        HorizontalLayout = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false);
+        categoryGridView.setLayoutManager(HorizontalLayout);
+        categoryGridView.setAdapter(catAdapter);
 
         //Get the names of Category here into the arraylist.
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -60,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 for(DataSnapshot dataSnapshot : snapshot.getChildren()){
                     Category category = dataSnapshot.getValue(Category.class);
                     categoryArrayList.add(category);
-                    categoryGridView.setAdapter(categoryAdapter);
+                    categoryGridView.setAdapter(catAdapter);
                 }
             }
 
@@ -92,13 +96,21 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        categoryGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        catAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(int position) {
                 filterByCategory(categoryArrayList.get(position).getName());
-                Log.d("Category Filter", categoryArrayList.get(position).getName());
             }
         });
+
+//        categoryGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                filterByCategory(categoryArrayList.get(position).getName());
+//                Log.d("Category Filter", categoryArrayList.get(position).getName());
+//            }
+//        });
     }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
@@ -141,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        categoryGridView.setAdapter(categoryAdapter);
+        categoryGridView.setAdapter(catAdapter);
 
         productRecyclerView.setAdapter(productAdapter);
         productAdapter.notifyDataSetChanged();
@@ -162,5 +174,4 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
-
 }

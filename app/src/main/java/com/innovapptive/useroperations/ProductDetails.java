@@ -47,6 +47,10 @@ public class ProductDetails extends AppCompatActivity implements AdapterView.OnI
     String [] sizes = {"Choose a size","XS","S","M","L","XL","XXL","XXXL"};
     String [] shoeSize = {"Choose a size", "5","5 wide", "5.5", "5.5 wide", "6","6 wide", "6.5", "6.5 wide"
             , "7","7 wide", "7.5", "7.5 wide", "8","8 wide", "8.5", "8.5 wide", "9","9 wide", "9.5", "9.5 wide"};
+    String [] capSize = {"Choose a size","Small", "Medium", "Large", "Extra-Large"};
+    String [] laptopVarient = {"Laptop", "Laptop + Mouse", "Laptop + Wires Mouse", "Laptop + Wireless Mouse"};
+    String [] mobileVarient = {"Mobile", "Mobile + Screen Guard", "Mobile + Back Cover", "Mobile + Boat Earphones(Truly wireless)"};
+    String [] standard = {"Standard size"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,11 +81,28 @@ public class ProductDetails extends AppCompatActivity implements AdapterView.OnI
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 product = snapshot.getValue(Product.class);
                 Glide.with(getApplicationContext()).load(product.getUrl()).into(productImage);
-                productMrp.setText("₹"+product.getMrp());
+                long discount = Math.round(((Integer.parseInt(product.getMrp())*1.0-Integer.parseInt(product.getSp())*1.0)/Integer.parseInt(product.getMrp())*1.0)*100);
+                productMrp.setText("₹"+product.getMrp()+"("+discount+" %OFF)");
                 productSp.setText("₹"+product.getSp());
                 productTitle.setText(product.getProductTitle());
                 if(product.getCategory().equals("Shoes")){
                     ArrayAdapter ad = new ArrayAdapter(getApplicationContext(),android.R.layout.simple_spinner_item,shoeSize);
+                    ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    productSizeSpinner.setAdapter(ad);
+                }else if(product.getCategory().equals("Mobile")){
+                    ArrayAdapter ad = new ArrayAdapter(getApplicationContext(),android.R.layout.simple_spinner_item,mobileVarient);
+                    ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    productSizeSpinner.setAdapter(ad);
+                }else if(product.getCategory().equals("Laptop")){
+                    ArrayAdapter ad = new ArrayAdapter(getApplicationContext(),android.R.layout.simple_spinner_item,laptopVarient);
+                    ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    productSizeSpinner.setAdapter(ad);
+                }else if(product.getCategory().equals("Cap")){
+                    ArrayAdapter ad = new ArrayAdapter(getApplicationContext(),android.R.layout.simple_spinner_item,capSize);
+                    ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    productSizeSpinner.setAdapter(ad);
+                }else if(product.getCategory().equals("Personal Care") ||product.getCategory().equals("Fitness") ||product.getCategory().equals("Beauty") ||product.getCategory().equals("Accessories") ||product.getCategory().equals("Gaming") ||product.getCategory().equals("Watch")){
+                    ArrayAdapter ad = new ArrayAdapter(getApplicationContext(),android.R.layout.simple_spinner_item,standard);
                     ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     productSizeSpinner.setAdapter(ad);
                 }else{
@@ -124,18 +145,32 @@ public class ProductDetails extends AppCompatActivity implements AdapterView.OnI
 //                cartReferance.child(product.getId()).setValue(product);
                 CartProduct cartProduct = new CartProduct(product.getProductTitle(), product.getCategory(), product.getMrp(), product.getSp(), product.getId(), product.getUrl(), selectedSize, selectedQuantity.getText().toString());
                 cartReferance.child(product.getId()).setValue(cartProduct);
-                Intent cartIntent = new Intent(ProductDetails.this,CartActivity.class);
-                startActivity(cartIntent);
-                Toast.makeText(ProductDetails.this, "Added item to cart", Toast.LENGTH_SHORT).show();
+                if(selectedQuantity.getText().toString().equals("0")){
+                    Toast.makeText(ProductDetails.this, "Select Qualtity", Toast.LENGTH_SHORT).show();
+                }else if(pos==0){
+                    Toast.makeText(ProductDetails.this, "Select Size", Toast.LENGTH_SHORT).show();
+                }else{
+                    Intent cartIntent = new Intent(ProductDetails.this,CartActivity.class);
+                    startActivity(cartIntent);
+                    Toast.makeText(ProductDetails.this, "Added item to cart", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
     }
-
+    int pos=-1;
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        pos=position;
         if (product.getCategory().equals("Shoes")){
             selectedSize = shoeSize[position];
+        }else if(product.getCategory().equals("Cap")){
+            selectedSize = capSize[position];
+        }else if(product.getCategory().equals("Laptop")){
+            selectedSize = laptopVarient[position];
+        }else if(product.getCategory().equals("Mobile")){
+            selectedSize = mobileVarient[position];
         }else{
             selectedSize = sizes[position];
         }
